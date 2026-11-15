@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Gemo Search Desktop</title>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-elevated: #f1f5f9;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent: #0284c7;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --shadow-card: 0 4px 20px rgba(15, 23, 42, 0.05);
+            --shadow-hover: 0 10px 28px rgba(15, 23, 42, 0.1);
+        }
+
+        body.dark-theme {
+            --bg-main: #070a12;
+            --bg-card: #0f172a;
+            --bg-elevated: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.25);
+            --shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.45);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            transition: background-color 0.2s ease, color 0.2s ease, opacity 0.5s ease;
+        }
+
+        /* Effetto Teletrasporto */
+        body.teleporting {
+            opacity: 0;
+            transform: scale(0.95);
+            filter: blur(8px);
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .top-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: var(--shadow-card);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .top-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+        .container {
+            width: 100%;
+            max-width: 720px;
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 28px;
+        }
+
+        .brand-title { font-size: 42px; font-weight: 700; letter-spacing: -1.5px; margin: 0; }
+        .brand-subtitle { font-size: 14px; color: var(--text-muted); line-height: 1.5; max-width: 520px; margin: 0 auto; }
+
+        .download-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .download-title { font-size: 20px; font-weight: 600; margin: 0; }
+        .download-info { font-size: 12px; color: var(--text-muted); margin: 0; }
+
+        .download-btn {
+            background-color: var(--accent);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 12px 28px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+            transition: opacity 0.15s ease, transform 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .download-btn:hover { opacity: 0.92; transform: translateY(-2px); }
+        .download-btn:active { transform: scale(0.98); }
+
+        /* Barra di Teletrasporto / Download .exe */
+        #teleport-status {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            width: 100%;
+            max-width: 280px;
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .status-text { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .feature-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            text-align: left;
+            box-shadow: var(--shadow-card);
+        }
+        .feature-title { font-size: 13px; font-weight: 600; margin: 0 0 4px 0; color: var(--text-main); }
+        .feature-desc { font-size: 11px; color: var(--text-muted); margin: 0; line-height: 1.4; }
+
+        @media (max-width: 680px) {
+            .features-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <a class="top-btn" href="index.html">🏠 Home Web</a>
+        <button class="top-btn" id="theme-btn">🌓 Tema</button>
+    </div>
+
+    <div class="container">
+        <div>
+            <h1 class="brand-title">Gemo Search Desktop</h1>
+            <p class="brand-subtitle">Scarica l'applicazione nativa per Windows. Prestazioni elevate, servizi integrati e gestione avanzata dei file in un unico browser.</p>
+        </div>
+
+        <div class="download-card">
+            <div class="download-icon">🚀</div>
+            <div>
+                <h2 class="download-title">Gemo Search v1.0 (.exe)</h2>
+                <p class="download-info">Installer ufficiale per Windows (64-bit)</p>
+            </div>
+            
+            <button class="download-btn" id="download-trigger">
+                📥 Scarica Gemo Search .exe
+            </button>
+
+            <!-- Animazione Teletrasporto / Download -->
+            <div id="teleport-status">
+                <div class="status-text" id="status-msg">Inizializzazione teletrasporto...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-title">⚡ Servizi Rapidi</div>
+                <div class="feature-desc">WhatsApp, YouTube, Spotify e ChatGPT a portata di click con loghi ufficiali.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-title">🛡️ Ad-Blocker</div>
+                <div class="feature-desc">Blocco tracker integrato e navigazione sicura protetta da crittografia.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-title">🚀 Download Manager</div>
+                <div class="feature-desc">Scarica launcher e app e aprila direttamente con un click dal pannello laterale.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tema Scuro/Chiaro
+        const themeBtn = document.getElementById('theme-btn');
+        const isDark = localStorage.getItem('gemo_web_theme') === 'dark';
+        if (isDark) document.body.classList.add('dark-theme');
+
+        themeBtn.addEventListener('click', () => {
+            const darkNow = document.body.classList.toggle('dark-theme');
+            localStorage.setItem('gemo_web_theme', darkNow ? 'dark' : 'light');
+        });
+
+        // Effetto Teletrasporto e Download .exe simulato
+        const downloadTrigger = document.getElementById('download-trigger');
+        const teleportStatus = document.getElementById('teleport-status');
+        const progressFill = document.getElementById('progress-fill');
+        const statusMsg = document.getElementById('status-msg');
+
+        downloadTrigger.addEventListener('click', () => {
+            downloadTrigger.style.display = 'none';
+            teleportStatus.style.display = 'flex';
+
+            let progress = 0;
+            const messages = [
+                "Preparazione pacchetto .exe...",
+                "Teletrasporto file in corso...",
+                "Generazione installer Gemo Search...",
+                "Download completato!"
+            ];
+
+            const interval = setInterval(() => {
+                progress += 2;
+                progressFill.style.width = progress + '%';
+
+                if (progress === 30) statusMsg.textContent = messages[1];
+                if (progress === 70) statusMsg.textContent = messages[2];
+                if (progress === 100) {
+                    clearInterval(interval);
+                    statusMsg.textContent = messages[3];
+                    
+                    // Effetto dissolvenza finale
+                    setTimeout(() => {
+                        document.body.classList.add('teleporting');
+                        setTimeout(() => {
+                            alert('Download di Gemo_Search_Setup.exe avviato con successo!');
+                            window.location.reload();
+                        }, 500);
+                    }, 600);
+                }
+            }, 30);
+        });
+    </script>
+</body>
+</html>
